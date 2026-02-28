@@ -28,6 +28,7 @@ interface AppContextType {
   clearProfile: () => void;
   targets: Target[];
   addTarget: (target: Omit<Target, 'id' | 'messages'>) => void;
+  createTrainingTarget: () => void;
   addMessageToTarget: (targetId: string, message: Message) => void;
 }
 
@@ -70,6 +71,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setTargetsState(prev => [...prev, newTarget]);
   };
 
+  const createTrainingTarget = () => {
+    if (!profile) return;
+    if (targets.some(t => t.id === 'treino')) return;
+
+    const isWoman = profile.targetGender === 'mulher';
+    const newTarget: Target = {
+      id: 'treino',
+      name: isWoman ? 'Simulador (Mulher)' : 'Simulador (Homem)',
+      characteristics: 'Este é um ambiente seguro. Aja como a pessoa que o usuário deseja conquistar para que ele possa treinar as falas antes de enviar na vida real.',
+      meetContext: 'Nos conhecemos através do simulador de treinamento do app IshTar.AI.',
+      messages: []
+    };
+    setTargetsState(prev => [...prev, newTarget]);
+  };
+
   const addMessageToTarget = (targetId: string, message: Message) => {
     setTargetsState(prev => prev.map(t => {
       if (t.id === targetId) {
@@ -80,7 +96,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ profile, setProfile, clearProfile, targets, addTarget, addMessageToTarget }}>
+    <AppContext.Provider value={{ profile, setProfile, clearProfile, targets, addTarget, createTrainingTarget, addMessageToTarget }}>
       {children}
     </AppContext.Provider>
   );

@@ -65,6 +65,7 @@ const Chat = () => {
 
     // Se não há mensagens, mostra uma mensagem inicial do sistema
     const hasMessages = target.messages.length > 0;
+    const isTraining = target.id === 'treino';
 
     return (
         <div className="chat-page animate-fade-in">
@@ -73,9 +74,10 @@ const Chat = () => {
                     <ArrowLeft size={24} />
                 </button>
                 <div className="chat-header-info">
-                    <h2>Consultoria: {target.name}</h2>
-                    <span className="ai-status">
-                        <Sparkles size={14} className="icon-pulse" /> Conselheiro conectado
+                    <h2>{isTraining ? 'Simulador Ativado' : `Consultoria: ${target.name}`}</h2>
+                    <span className={`ai-status ${isTraining ? 'training-mode' : ''}`}>
+                        <Sparkles size={14} className="icon-pulse" />
+                        {isTraining ? 'Praticando Flerte' : 'Conselheiro conectado'}
                     </span>
                 </div>
                 <div style={{ width: 40 }} />
@@ -85,10 +87,17 @@ const Chat = () => {
                 {!hasMessages && (
                     <div className="initial-message glass-panel">
                         <Sparkles size={32} color="var(--primary)" className="mb-2" />
-                        <p><strong>Diga o que você quer mandar para {target.name}!</strong></p>
+                        <p>
+                            <strong>
+                                {isTraining
+                                    ? `Inicie a conversa com ${target.name}!`
+                                    : `Diga o que você quer mandar para ${target.name}!`}
+                            </strong>
+                        </p>
                         <p className="text-secondary text-sm mt-2">
-                            Envie a última mensagem que {target.name} mandou ou como você quer iniciar a conversa.
-                            Vou te dar a melhor resposta de mestre.
+                            {isTraining
+                                ? "Este é um ambiente seguro. Aja naturalmente e veja como suas mensagens são interpretadas. Eu agirei exatamente como uma pessoa real."
+                                : "Envie a última mensagem que ele(a) mandou ou como você quer iniciar a conversa. Vou te dar a melhor resposta de mestre."}
                         </p>
                     </div>
                 )}
@@ -109,7 +118,7 @@ const Chat = () => {
                     <div className="message-bubble-container assistant">
                         <div className="message-bubble assistant-bubble typing-indicator">
                             <Loader2 size={20} className="icon-spin" />
-                            <span>Pensando na melhor jogada...</span>
+                            <span>{isTraining ? 'Digitando...' : 'Pensando na melhor jogada...'}</span>
                         </div>
                     </div>
                 )}
@@ -120,7 +129,7 @@ const Chat = () => {
                 <form onSubmit={handleSendMessage} className="chat-form">
                     <input
                         type="text"
-                        placeholder={`O que ${target.name} disse?`}
+                        placeholder={isTraining ? 'Envie sua mensagem...' : `O que ${target.name} disse?`}
                         value={inputMessage}
                         onChange={(e) => setInputMessage(e.target.value)}
                         disabled={isTyping}
