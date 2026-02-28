@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../store/AppProvider';
 import type { Gender } from '../store/AppProvider';
 import { Heart } from 'lucide-react';
+import avatarWoman from '../assets/avatar-woman.png';
+import avatarMan from '../assets/avatar-man.png';
 import './Onboarding.css';
 
 const Onboarding = () => {
@@ -49,7 +51,7 @@ const Onboarding = () => {
                                 className={`gender-btn ${targetGender === 'mulher' ? 'active' : ''}`}
                                 onClick={() => setTargetGender('mulher')}
                             >
-                                <img src={`${import.meta.env.BASE_URL}assets/avatar-woman.png`} alt="Mulheres" className="gender-avatar" />
+                                <img src={avatarWoman} alt="Mulheres" className="gender-avatar" />
                                 <span>Mulheres</span>
                             </button>
                             <button
@@ -57,7 +59,7 @@ const Onboarding = () => {
                                 className={`gender-btn ${targetGender === 'homem' ? 'active' : ''}`}
                                 onClick={() => setTargetGender('homem')}
                             >
-                                <img src={`${import.meta.env.BASE_URL}assets/avatar-man.png`} alt="Homens" className="gender-avatar" />
+                                <img src={avatarMan} alt="Homens" className="gender-avatar" />
                                 <span>Homens</span>
                             </button>
                         </div>
