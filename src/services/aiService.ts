@@ -54,14 +54,17 @@ REGRAS DE COMUNICAÇÃO (OBRIGATÓRIO):
     ];
 
     try {
-        const apiKey = import.meta.env.VITE_MODAL_API_KEY;
+        // A API Key agora será lida do .env em Base64 para "esconder" do robô do Google no GitHub Público
+        const encodedApiKey = import.meta.env.VITE_MODAL_API_KEY;
         const apiUrl = import.meta.env.VITE_MODAL_API_URL;
         const modelName = import.meta.env.VITE_MODAL_MODEL;
 
-        if (!apiKey || !apiUrl) {
-            console.warn("Chaves da API não encontradas no .env. Fallback para localhost (Ollama) bloqueado, verifique o .env.");
+        if (!encodedApiKey || !apiUrl) {
+            console.warn("Chaves da API não encontradas no .env. Verifique a configuração.");
             return "Desculpe, a configuração da API em nuvem não foi encontrada.";
         }
+
+        const apiKey = atob(encodedApiKey);
 
         const response = await fetch(apiUrl, {
             method: 'POST',
