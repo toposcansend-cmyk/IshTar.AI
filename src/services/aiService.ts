@@ -9,8 +9,13 @@ const fetchWithRetry = async (url: string, options: any, maxRetries = 3, delay =
             const response = await fetch(url, options);
             if (response.ok) return response;
 
+            if (response.status === 429) {
+                lastError = new Error(`Cota Limitada (429): Você está enviando mensagens muito rápido para a IA gratuita. Aguarde alguns segundos.`);
+                throw lastError;
+            }
+
             lastError = new Error(`HTTP error! status: ${response.status}`);
-            if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+            if (response.status >= 400 && response.status < 500) {
                 // Erros de sintaxe ou auth, não insistir.
                 throw lastError;
             }
@@ -122,8 +127,7 @@ REGRAS DE CONTEÚDO PARA AS FRASES:
             body: JSON.stringify({
                 model: modelName,
                 messages: formattedMessages,
-                temperature: 0.7,
-                response_format: { type: "json_object" }
+                temperature: 0.7
             })
         });
 
@@ -132,7 +136,9 @@ REGRAS DE CONTEÚDO PARA AS FRASES:
 
     } catch (err: any) {
         console.error("Erro na integração com AI: ", err);
-        return "Desculpe, " + profile.name + ". Parece que não consegui me conectar à minha intuição nas nuvens (Google Gemini). Verifique a sua conexão de internet e se a API Key é válida.";
+        return err.message.includes("429")
+            ? err.message
+            : "Desculpe, " + profile.name + ". Parece que não consegui me conectar à minha intuição nas nuvens (Google Gemini). Verifique a sua conexão de internet e se a API Key é válida.";
     }
 };
 
@@ -203,8 +209,7 @@ RETORNE EXCLUSIVAMENTE UM ARQUIVO JSON CRU no SEGUINTE FORMATO (E APENAS ESSE FO
             body: JSON.stringify({
                 model: modelName,
                 messages: [{ role: 'system', content: systemPrompt }],
-                temperature: 0.3, // Menos temperatura para ser mais analítico e preciso
-                response_format: { type: "json_object" }
+                temperature: 0.3 // Menos temperatura para ser mais analítico e preciso
             })
         });
 
