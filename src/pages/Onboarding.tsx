@@ -49,7 +49,7 @@ const Onboarding = () => {
                                 className={`gender-btn ${targetGender === 'mulher' ? 'active' : ''}`}
                                 onClick={() => setTargetGender('mulher')}
                             >
-                                <img src="/assets/avatar-woman.png" alt="Mulheres" className="gender-avatar" />
+                                <img src={`${import.meta.env.BASE_URL}assets/avatar-woman.png`} alt="Mulheres" className="gender-avatar" />
                                 <span>Mulheres</span>
                             </button>
                             <button
@@ -57,7 +57,7 @@ const Onboarding = () => {
                                 className={`gender-btn ${targetGender === 'homem' ? 'active' : ''}`}
                                 onClick={() => setTargetGender('homem')}
                             >
-                                <img src="/assets/avatar-man.png" alt="Homens" className="gender-avatar" />
+                                <img src={`${import.meta.env.BASE_URL}assets/avatar-man.png`} alt="Homens" className="gender-avatar" />
                                 <span>Homens</span>
                             </button>
                         </div>
