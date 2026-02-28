@@ -1,5 +1,32 @@
 import type { Target, UserProfile, Message } from '../store/AppProvider';
 
+const fetchWithRetry = async (url: string, options: any, maxRetries = 3, delay = 2000) => {
+    let lastError: any = null;
+    let retries = maxRetries;
+
+    while (retries > 0) {
+        try {
+            const response = await fetch(url, options);
+            if (response.ok) return response;
+
+            lastError = new Error(`HTTP error! status: ${response.status}`);
+            if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+                // Erros de sintaxe ou auth, não insistir.
+                throw lastError;
+            }
+        } catch (err) {
+            lastError = err;
+        }
+
+        retries--;
+        if (retries > 0) {
+            console.warn(`[IshTar.AI] Instabilidade de Rede na Modal. Reconectando... (${maxRetries - retries}/${maxRetries}). Erro:`, lastError);
+            await new Promise(res => setTimeout(res, delay));
+        }
+    }
+    throw lastError;
+};
+
 export const getAIResponse = async (
     profile: UserProfile,
     target: Target,
@@ -86,7 +113,7 @@ REGRAS DE CONTEÚDO PARA AS FRASES:
 
         const apiKey = atob(encodedApiKey);
 
-        const response = await fetch(apiUrl, {
+        const response = await fetchWithRetry(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -99,10 +126,6 @@ REGRAS DE CONTEÚDO PARA AS FRASES:
                 response_format: { type: "json_object" }
             })
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
 
         const data = await response.json();
         return data.choices && data.choices[0] ? data.choices[0].message.content : "Erro ao processar resposta.";
@@ -171,7 +194,7 @@ RETORNE EXCLUSIVAMENTE UM ARQUIVO JSON CRU no SEGUINTE FORMATO (E APENAS ESSE FO
 
         const apiKey = atob(encodedApiKey);
 
-        const response = await fetch(apiUrl, {
+        const response = await fetchWithRetry(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -184,8 +207,6 @@ RETORNE EXCLUSIVAMENTE UM ARQUIVO JSON CRU no SEGUINTE FORMATO (E APENAS ESSE FO
                 response_format: { type: "json_object" }
             })
         });
-
-        if (!response.ok) throw new Error("API Error");
 
         const data = await response.json();
         const content = data.choices && data.choices[0] ? data.choices[0].message.content : null;
