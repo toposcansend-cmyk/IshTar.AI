@@ -6,18 +6,35 @@ import './TargetForm.css';
 
 const TargetForm = () => {
     const [name, setName] = useState('');
-    const [characteristics, setCharacteristics] = useState('');
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [difficulty, setDifficulty] = useState<string>('Média');
     const [meetContext, setMeetContext] = useState('');
 
     const { addTarget } = useAppContext();
     const navigate = useNavigate();
 
+    const VIBE_TAGS = ['Geek', 'Festeira', 'Introvertida', 'Sarcástica', 'Workaholic', 'Esportista', 'Romântica', 'Padrãozinho'];
+    const DIFFICULTIES = ['Fácil', 'Média', 'Hardcore'];
+
+    const toggleTag = (tag: string) => {
+        if (selectedTags.includes(tag)) {
+            setSelectedTags(selectedTags.filter(t => t !== tag));
+        } else {
+            if (selectedTags.length < 3) {
+                setSelectedTags([...selectedTags, tag]);
+            }
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (name.trim() && characteristics.trim() && meetContext.trim()) {
+        if (name.trim() && selectedTags.length > 0 && meetContext.trim()) {
+            const characteristics = `Vibe: ${selectedTags.join(', ')}. Nível: ${difficulty}.`;
             addTarget({
                 name: name.trim(),
-                characteristics: characteristics.trim(),
+                characteristics,
+                tags: selectedTags,
+                difficulty,
                 meetContext: meetContext.trim()
             });
             navigate('/dashboard');
@@ -55,14 +72,57 @@ const TargetForm = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Como é a personalidade dela/dele?</label>
-                        <textarea
-                            rows={3}
-                            placeholder="Ex: Extrovertida, gosta de gatos, adora filme de terror e tem um humor peculiar..."
-                            value={characteristics}
-                            onChange={(e) => setCharacteristics(e.target.value)}
-                            required
-                        />
+                        <label>Vibe & Personalidade (Máx 3)</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                            {VIBE_TAGS.map(tag => (
+                                <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => toggleTag(tag)}
+                                    style={{
+                                        padding: '6px 12px',
+                                        borderRadius: '20px',
+                                        border: `1px solid ${selectedTags.includes(tag) ? 'var(--primary)' : 'rgba(255,255,255,0.2)'}`,
+                                        background: selectedTags.includes(tag) ? 'var(--primary)' : 'transparent',
+                                        color: selectedTags.includes(tag) ? '#fff' : 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        fontSize: '0.85rem'
+                                    }}
+                                >
+                                    {tag}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginTop: '1rem' }}>
+                        <label>Dificuldade</label>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                            {DIFFICULTIES.map(diff => (
+                                <button
+                                    key={diff}
+                                    type="button"
+                                    onClick={() => setDifficulty(diff)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '10px',
+                                        borderRadius: '8px',
+                                        border: `2px solid ${difficulty === diff ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`,
+                                        background: difficulty === diff ? 'rgba(var(--primary-rgb), 0.1)' : 'rgba(0,0,0,0.2)',
+                                        color: difficulty === diff ? 'var(--primary)' : 'var(--text-secondary)',
+                                        cursor: 'pointer',
+                                        fontWeight: difficulty === diff ? 'bold' : 'normal',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    {diff === 'Fácil' && '🟢 '}
+                                    {diff === 'Média' && '🟡 '}
+                                    {diff === 'Hardcore' && '🔴 '}
+                                    {diff}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="form-group">
@@ -79,7 +139,8 @@ const TargetForm = () => {
                     <button
                         type="submit"
                         className="btn-primary form-submit"
-                        disabled={!name.trim() || !characteristics.trim() || !meetContext.trim()}
+                        disabled={!name.trim() || selectedTags.length === 0 || !meetContext.trim()}
+                        style={{ marginTop: '1.5rem' }}
                     >
                         <Sparkles size={20} /> Adicionar e Começar
                     </button>

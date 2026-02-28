@@ -3,9 +3,100 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../store/AppProvider';
 import type { Message } from '../store/AppProvider';
 import { getAIResponse } from '../services/aiService';
-import { ArrowLeft, Send, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Sparkles, Loader2, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import './Chat.css';
+
+interface PowerOf3Option {
+    titulo: string;
+    texto: string;
+    explicacao: string;
+}
+
+interface PowerOf3Response {
+    direta: PowerOf3Option;
+    charmosa: PowerOf3Option;
+    contextual: PowerOf3Option;
+}
+
+const tryParsePowerOf3 = (content: string): PowerOf3Response | null => {
+    try {
+        let cleanContent = content.trim();
+        if (cleanContent.startsWith('```json')) {
+            cleanContent = cleanContent.replace(/^```json/, '').replace(/```$/, '').trim();
+        } else if (cleanContent.startsWith('```')) {
+            cleanContent = cleanContent.replace(/^```/, '').replace(/```$/, '').trim();
+        }
+        const parsed = JSON.parse(cleanContent);
+        if (parsed.direta && parsed.charmosa && parsed.contextual) {
+            return parsed as PowerOf3Response;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+};
+
+const PowerOf3Cards = ({ data }: { data: PowerOf3Response }) => {
+    const [activeTab, setActiveTab] = useState<'direta' | 'charmosa' | 'contextual'>('direta');
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const renderCard = (key: 'direta' | 'charmosa' | 'contextual', icon: string) => {
+        const option = data[key];
+        if (!option) return null;
+        const isActive = activeTab === key;
+
+        return (
+            <div
+                className={`glass-panel p3-card ${isActive ? 'active' : ''}`}
+                onClick={() => setActiveTab(key)}
+                style={{
+                    cursor: 'pointer',
+                    marginBottom: '10px',
+                    border: isActive ? '1px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)',
+                    transition: 'all 0.3s ease'
+                }}
+            >
+                <h4 style={{ margin: 0, padding: '10px', color: isActive ? 'var(--primary)' : 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
+                    <span>{icon}</span> {option.titulo}
+                </h4>
+                {isActive && (
+                    <div className="p3-card-content animate-fade-in" style={{ padding: '0 15px 15px 15px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px' }}>
+                        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px', marginBottom: '10px', position: 'relative' }}>
+                            <p style={{ margin: 0, paddingRight: '30px', fontStyle: 'italic' }}>"{option.texto}"</p>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleCopy(option.texto); }}
+                                style={{ position: 'absolute', top: '10px', right: '10px', background: 'transparent', border: 'none', color: copied ? '#4ade80' : 'var(--text-secondary)', cursor: 'pointer' }}
+                            >
+                                <Copy size={18} />
+                            </button>
+                        </div>
+                        <p className="text-secondary" style={{ fontSize: '0.85rem', margin: 0 }}>
+                            <strong style={{ color: 'var(--text-main)' }}>💡 A tática: </strong>{option.explicacao}
+                        </p>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    return (
+        <div className="power-of-3-wrapper" style={{ width: '100%', maxWidth: '100%', marginTop: '10px' }}>
+            <h3 className="title-small text-gradient" style={{ fontSize: '0.9rem', marginBottom: '12px', textAlign: 'center' }}>Escolha sua Tática</h3>
+            <div className="p3-cards-list">
+                {renderCard('direta', '🗡️')}
+                {renderCard('charmosa', '🎭')}
+                {renderCard('contextual', '🧠')}
+            </div>
+        </div>
+    );
+};
 
 const Chat = () => {
     const { targetId } = useParams<{ targetId: string }>();
@@ -102,17 +193,28 @@ const Chat = () => {
                     </div>
                 )}
 
-                {target.messages.map(msg => (
-                    <div key={msg.id} className={`message-bubble-container ${msg.role === 'user' ? 'user' : 'assistant'}`}>
-                        <div className={`message-bubble ${msg.role === 'user' ? 'user-bubble' : 'assistant-bubble'}`}>
-                            {msg.role === 'assistant' ? (
-                                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                {target.messages.map(msg => {
+                    let parsedContent: PowerOf3Response | null = null;
+                    if (msg.role === 'assistant' && !isTraining) {
+                        parsedContent = tryParsePowerOf3(msg.content);
+                    }
+
+                    return (
+                        <div key={msg.id} className={`message-bubble-container ${msg.role === 'user' ? 'user' : 'assistant'}`} style={{ width: parsedContent ? '100%' : undefined }}>
+                            {parsedContent ? (
+                                <PowerOf3Cards data={parsedContent} />
                             ) : (
-                                msg.content
+                                <div className={`message-bubble ${msg.role === 'user' ? 'user-bubble' : 'assistant-bubble'}`}>
+                                    {msg.role === 'assistant' ? (
+                                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                    ) : (
+                                        msg.content
+                                    )}
+                                </div>
                             )}
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {isTyping && (
                     <div className="message-bubble-container assistant">

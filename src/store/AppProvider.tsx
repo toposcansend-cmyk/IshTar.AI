@@ -12,7 +12,9 @@ export interface Message {
 export interface Target {
   id: string;
   name: string;
-  characteristics: string;
+  characteristics: string; // Mantido para compatibilidade com a UI e descritivo
+  tags?: string[];
+  difficulty?: string;
   meetContext: string;
   messages: Message[];
 }
