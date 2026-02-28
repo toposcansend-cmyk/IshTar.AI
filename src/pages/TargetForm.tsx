@@ -1,17 +1,30 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../store/AppProvider';
-import { ArrowLeft, Target, Sparkles } from 'lucide-react';
+import { ArrowLeft, Target, Sparkles, Check } from 'lucide-react';
 import './TargetForm.css';
 
 const TargetForm = () => {
+    const { targetId } = useParams<{ targetId: string }>();
     const [name, setName] = useState('');
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [difficulty, setDifficulty] = useState<string>('Média');
     const [meetContext, setMeetContext] = useState('');
 
-    const { addTarget } = useAppContext();
+    const { targets, addTarget, updateTarget } = useAppContext();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (targetId) {
+            const existingTarget = targets.find(t => t.id === targetId);
+            if (existingTarget) {
+                setName(existingTarget.name);
+                setSelectedTags(existingTarget.tags || []);
+                setDifficulty(existingTarget.difficulty || 'Média');
+                setMeetContext(existingTarget.meetContext);
+            }
+        }
+    }, [targetId, targets]);
 
     const VIBE_TAGS = ['Geek', 'Festeira', 'Introvertida', 'Sarcástica', 'Workaholic', 'Esportista', 'Romântica', 'Padrãozinho'];
     const DIFFICULTIES = ['Fácil', 'Média', 'Hardcore'];
@@ -30,13 +43,24 @@ const TargetForm = () => {
         e.preventDefault();
         if (name.trim() && selectedTags.length > 0 && meetContext.trim()) {
             const characteristics = `Vibe: ${selectedTags.join(', ')}. Nível: ${difficulty}.`;
-            addTarget({
-                name: name.trim(),
-                characteristics,
-                tags: selectedTags,
-                difficulty,
-                meetContext: meetContext.trim()
-            });
+
+            if (targetId) {
+                updateTarget(targetId, {
+                    name: name.trim(),
+                    characteristics,
+                    tags: selectedTags,
+                    difficulty,
+                    meetContext: meetContext.trim()
+                });
+            } else {
+                addTarget({
+                    name: name.trim(),
+                    characteristics,
+                    tags: selectedTags,
+                    difficulty,
+                    meetContext: meetContext.trim()
+                });
+            }
             navigate('/dashboard');
         }
     };
@@ -47,7 +71,7 @@ const TargetForm = () => {
                 <button className="back-btn" onClick={() => navigate(-1)}>
                     <ArrowLeft size={24} />
                 </button>
-                <h1 className="title-small">Novo Alvo</h1>
+                <h1 className="title-small">{targetId ? 'Editar Alvo' : 'Novo Alvo'}</h1>
                 <div style={{ width: 40 }} /> {/* Spacer */}
             </header>
 
@@ -56,7 +80,7 @@ const TargetForm = () => {
                     <Target size={40} className="icon-target" />
                 </div>
                 <p className="text-center text-secondary mb-6 mt-2">
-                    Me conte um pouco sobre a pessoa. Quanto mais detalhes, melhores serão os meus conselhos!
+                    {targetId ? 'Atualize as informações para afiar as suas estratégias:' : 'Me conte um pouco sobre a pessoa. Quanto mais detalhes, melhores serão os meus conselhos!'}
                 </p>
 
                 <form onSubmit={handleSubmit} className="target-form">
@@ -142,7 +166,8 @@ const TargetForm = () => {
                         disabled={!name.trim() || selectedTags.length === 0 || !meetContext.trim()}
                         style={{ marginTop: '1.5rem' }}
                     >
-                        <Sparkles size={20} /> Adicionar e Começar
+                        {targetId ? <Check size={20} /> : <Sparkles size={20} />}
+                        {targetId ? ' Salvar Alterações' : ' Adicionar e Começar'}
                     </button>
                 </form>
             </main>

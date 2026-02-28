@@ -25,6 +25,7 @@ const App = () => {
         <Route path="/" element={!profile ? <Onboarding /> : <Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/new-target" element={<ProtectedRoute><TargetForm /></ProtectedRoute>} />
+        <Route path="/edit-target/:targetId" element={<ProtectedRoute><TargetForm /></ProtectedRoute>} />
         <Route path="/chat/:targetId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

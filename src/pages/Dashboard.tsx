@@ -1,13 +1,13 @@
 
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../store/AppProvider';
-import { Plus, MessageCircle, Heart, LogOut } from 'lucide-react';
+import { Plus, MessageCircle, Heart, LogOut, Trash2, Edit2 } from 'lucide-react';
 import avatarWoman from '../assets/avatar-woman.png';
 import avatarMan from '../assets/avatar-man.png';
 import './Dashboard.css';
 
 const Dashboard = () => {
-    const { profile, targets, clearProfile, createTrainingTarget } = useAppContext();
+    const { profile, targets, clearProfile, createTrainingTarget, deleteTarget } = useAppContext();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -55,8 +55,22 @@ const Dashboard = () => {
                                     <h3>{target.name}</h3>
                                     <p className="text-secondary truncate">{target.characteristics}</p>
                                 </div>
-                                <div className="target-action">
-                                    <MessageCircle size={24} color="var(--primary)" />
+                                <div className="target-action" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); navigate(`/edit-target/${target.id}`); }}
+                                        style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px', display: 'flex' }}
+                                        title="Editar"
+                                    >
+                                        <Edit2 size={18} />
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); if (confirm('Tem certeza que deseja excluir este alvo?')) deleteTarget(target.id); }}
+                                        style={{ background: 'transparent', border: 'none', color: '#f43f5e', cursor: 'pointer', padding: '5px', display: 'flex' }}
+                                        title="Excluir"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                    <MessageCircle size={24} color="var(--primary)" style={{ marginLeft: '5px' }} />
                                 </div>
                             </div>
                         ))}

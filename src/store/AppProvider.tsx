@@ -30,6 +30,8 @@ interface AppContextType {
   clearProfile: () => void;
   targets: Target[];
   addTarget: (target: Omit<Target, 'id' | 'messages'>) => void;
+  updateTarget: (id: string, targetData: Partial<Target>) => void;
+  deleteTarget: (id: string) => void;
   createTrainingTarget: () => void;
   addMessageToTarget: (targetId: string, message: Message) => void;
 }
@@ -73,6 +75,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setTargetsState(prev => [...prev, newTarget]);
   };
 
+  const updateTarget = (id: string, targetData: Partial<Target>) => {
+    setTargetsState(prev => prev.map(t => t.id === id ? { ...t, ...targetData } : t));
+  };
+
+  const deleteTarget = (id: string) => {
+    setTargetsState(prev => prev.filter(t => t.id !== id));
+  };
+
   const createTrainingTarget = () => {
     if (!profile) return;
     if (targets.some(t => t.id === 'treino')) return;
@@ -98,7 +108,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ profile, setProfile, clearProfile, targets, addTarget, createTrainingTarget, addMessageToTarget }}>
+    <AppContext.Provider value={{ profile, setProfile, clearProfile, targets, addTarget, updateTarget, deleteTarget, createTrainingTarget, addMessageToTarget }}>
       {children}
     </AppContext.Provider>
   );
