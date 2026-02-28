@@ -2,6 +2,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../store/AppProvider';
 import { Plus, MessageCircle, Heart, LogOut } from 'lucide-react';
+import avatarWoman from '../assets/avatar-woman.png';
+import avatarMan from '../assets/avatar-man.png';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -62,20 +64,35 @@ const Dashboard = () => {
                 )}
 
                 <div className="section-title" style={{ marginTop: '2rem', marginBottom: '1rem' }}>
-                    <h2 className="title-small text-secondary">Área de Prática (Simulador)</h2>
-                    <p className="text-secondary" style={{ fontSize: '0.85rem' }}>Pratique a sua lábia conversando com o nosso simulador.</p>
+                    <h2 className="title-small text-gradient" style={{ fontSize: '1.2rem' }}>Vamos praticar?</h2>
+                    <p className="text-secondary" style={{ fontSize: '0.85rem' }}>A inteligência artificial assumirá o papel de uma pessoa real.</p>
                 </div>
 
                 <div
                     className="target-card glass-panel training-card"
                     onClick={handleTrainingClick}
-                    style={{ border: '2px dashed var(--primary)', background: 'rgba(var(--primary-rgb), 0.05)' }}
+                    style={{
+                        border: '1px solid var(--primary)',
+                        background: 'rgba(var(--primary-rgb), 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '15px',
+                        padding: '15px'
+                    }}
                 >
-                    <div className="target-info">
-                        <h3 className="text-gradient">Treino Rápido</h3>
-                        <p className="text-secondary truncate">Conversar com a simulação do seu alvo ideal</p>
+                    <img
+                        src={profile?.targetGender === 'mulher' ? avatarWoman : avatarMan}
+                        alt="Avatar Simulador"
+                        style={{ width: '45px', height: '45px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }}
+                    />
+                    <div className="target-info" style={{ flex: 1 }}>
+                        <h3>{profile?.targetGender === 'mulher' ? 'Garota Oculta' : 'Garoto Oculto'}</h3>
+                        <p className="text-secondary truncate" style={{ fontStyle: 'italic', color: 'var(--text-light)' }}>
+                            Oi {profile?.name}, vamos conversar...
+                        </p>
                     </div>
                     <div className="target-action">
+                        <div style={{ background: 'var(--primary)', borderRadius: '50%', width: '10px', height: '10px', marginRight: '10px', boxShadow: '0 0 8px var(--primary)' }}></div>
                         <MessageCircle size={24} color="var(--primary)" />
                     </div>
                 </div>
