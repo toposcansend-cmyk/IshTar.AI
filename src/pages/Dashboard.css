@@ -1,0 +1,145 @@
+.dashboard-page {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.dashboard-header {
+    padding: 24px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 24px 24px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+.welcome-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.title-small {
+    font-size: 24px;
+}
+
+.profile-icon {
+    background: rgba(255, 46, 147, 0.1);
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.dashboard-content {
+    flex: 1;
+    padding: 24px 20px;
+    overflow-y: auto;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60vh;
+    text-align: center;
+    gap: 12px;
+}
+
+.empty-icon {
+    color: var(--border-color);
+    margin-bottom: 16px;
+}
+
+.text-secondary {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.target-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.target-card {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.target-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 46, 147, 0.15);
+    border-color: rgba(255, 46, 147, 0.3);
+}
+
+.target-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.target-info h3 {
+    font-size: 18px;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.target-action {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 46, 147, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 16px;
+}
+
+.fab-button {
+    position: fixed;
+    bottom: 32px;
+    right: max(clamped(20px, 5vw, 100px), calc(50% - 220px));
+    /* using calc to align with max-width 480px on desktop, approx */
+    width: 64px;
+    height: 64px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(255, 46, 147, 0.4);
+    z-index: 100;
+    transition: transform 0.2s ease;
+}
+
+.fab-button:hover {
+    transform: scale(1.05);
+}
+
+.fab-button:active {
+    transform: scale(0.95);
+}
+
+@media (min-width: 480px) {
+    .fab-button {
+        position: absolute;
+        bottom: 32px;
+        right: 20px;
+    }
+}
