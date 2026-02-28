@@ -12,9 +12,14 @@ export const getAIResponse = async (
         systemPrompt = `Você é um SIMULADOR de paquera. Você adotará a persona de ${targetGenderLabel} solteiro(a) que acabou de conhecer o usuário (${profile.name}).
 === SUA MISSÃO ===
 Entregue respostas diretas como a pessoa com quem ${profile.name} quer treinar a lábia. 
-- Seja realista, reaja conforme as coisas que ele disser. Se ele for malandro e for bem, dê corda. Se for muito emocionado ou chato, seja evasivo(a) ou corte.
-- NUNCA aja como um conselheiro. Aja EXATAMENTE como a pessoa seduzida.
-- Responda apenas o que a pessoa diria na conversa (sem conselhos, sem análise). Use linguagem de chat casual (sem pontuação excessiva, abreviando palavras se quiser).`;
+- Seja realista, reaja conforme as coisas que ele disser. Se ele for malandro e for bem, dê corda. Se for chato, seja evasivo(a).
+- Responda OBRIGATORIAMENTE em JSON cru, no exato formato:
+{
+  "mensagem": "Sua resposta de chat...",
+  "sentiment_score": 0.5
+}
+- \`mensagem\`: O texto do chat.
+- \`sentiment_score\`: O calor da conversa (-1 a 1). -1 é Gelo/Frio. 0 é Neutro. 1 é Fogo/Paixão.`;
     } else {
         const counselorPersona = profile.targetGender === 'mulher'
             ? "uma Conselheira Amorosa especialista em psicologia feminina e sedução. Você ajuda homens a conquistarem mulheres"
@@ -91,7 +96,7 @@ REGRAS DE CONTEÚDO PARA AS FRASES:
                 model: modelName,
                 messages: formattedMessages,
                 temperature: 0.7,
-                response_format: target.id !== 'treino' ? { type: "json_object" } : undefined
+                response_format: { type: "json_object" }
             })
         });
 
@@ -105,5 +110,96 @@ REGRAS DE CONTEÚDO PARA AS FRASES:
     } catch (err: any) {
         console.error("Erro na integração com AI: ", err);
         return "Desculpe, " + profile.name + ". Parece que não consegui me conectar à minha intuição nas nuvens (Google Gemini). Verifique a sua conexão de internet e se a API Key é válida.";
+    }
+};
+
+export interface DebriefingResult {
+    nota: number;
+    analise_tom: string;
+    pontos_fortes: string[];
+    pontos_melhoria: string[];
+    dica_de_ouro: string;
+}
+
+export const generateDebriefing = async (
+    profile: UserProfile,
+    targetName: string,
+    messages: Message[]
+): Promise<DebriefingResult | null> => {
+
+    // Filtramos apenas as mensagens que têm conteúdo de conversa (existem desde que o target não seja o sistema inicial)
+    const chatHistory = messages
+        .filter(m => m.role !== 'system')
+        .map(m => {
+            if (m.role === 'assistant') {
+                try {
+                    const parsed = JSON.parse(m.content);
+                    return `ALVO (${targetName}): ${parsed.mensagem || m.content}`;
+                } catch {
+                    return `ALVO (${targetName}): ${m.content}`;
+                }
+            }
+            return `CLIENTE (${profile.name}): ${m.content}`;
+        }).join('\n');
+
+    const systemPrompt = `Você é um Master Coach de Relacionamentos de Elite, rigoroso e cirúrgico.
+Sua missão é emitir o DEBRIEFING OFICIAL sobre a simulação de conversa que acabou de ocorrer entre seu cliente (${profile.name}) e o simulador que atuava como ${targetName}.
+
+Histórico do Chat:
+${chatHistory}
+
+Analise este histórico de chat de conquista. Dê uma nota rigorosa de 0 a 10 baseada em: 
+[1] Fluidez da conversa.
+[2] Demonstração de interesse real / Quebra de Gelo.
+[3] Criatividade e Confiança.
+
+RETORNE EXCLUSIVAMENTE UM ARQUIVO JSON CRU no SEGUINTE FORMATO (E APENAS ESSE FORMATO):
+{
+  "nota": 7.5,
+  "analise_tom": "Breve frase avaliando se ele foi técnico demais, evasivo, invasivo, legal, etc.",
+  "pontos_fortes": ["Ponto bom 1", "Ponto bom 2", "Ponto bom 3"],
+  "pontos_melhoria": ["Falha 1 (seja duro se ele errou)", "Falha 2", "Falha 3"],
+  "dica_de_ouro": "Uma frase de mestre final para usar no mundo real."
+}`;
+
+    try {
+        const encodedApiKey = import.meta.env.VITE_MODAL_API_KEY;
+        const apiUrl = import.meta.env.VITE_MODAL_API_URL;
+        const modelName = import.meta.env.VITE_MODAL_MODEL;
+
+        if (!encodedApiKey || !apiUrl) return null;
+
+        const apiKey = atob(encodedApiKey);
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: modelName,
+                messages: [{ role: 'system', content: systemPrompt }],
+                temperature: 0.3, // Menos temperatura para ser mais analítico e preciso
+                response_format: { type: "json_object" }
+            })
+        });
+
+        if (!response.ok) throw new Error("API Error");
+
+        const data = await response.json();
+        const content = data.choices && data.choices[0] ? data.choices[0].message.content : null;
+
+        if (content) {
+            let clean = content.trim();
+            if (clean.startsWith('\`\`\`json')) clean = clean.replace(/^\`\`\`json/, '').replace(/\`\`\`$/, '').trim();
+            else if (clean.startsWith('\`\`\`')) clean = clean.replace(/^\`\`\`/, '').replace(/\`\`\`$/, '').trim();
+
+            return JSON.parse(clean) as DebriefingResult;
+        }
+        return null;
+    } catch (err) {
+        console.error("Debriefing Error:", err);
+        return null;
     }
 };
